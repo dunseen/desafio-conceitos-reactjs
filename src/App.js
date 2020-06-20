@@ -4,42 +4,49 @@ import api from  './services/api';
 import "./styles.css";
 
 function App() {
-  const [projects, setProjects] = useState([]);
+  const [repositories, setRepositories] = useState([]);
+  const [count, setCount] = useState(0);
 
   useEffect(()=> {
-    api.get('projects').then(response => {
-      setProjects(response.data);
+    api.get('repositories').then(response => {
+      setRepositories(response.data);
     })
 
   },[]);
   
   
   async function handleAddRepository() {
-    const response = await api.post('projects', {
-      title: "Projeto",
-      ownner: "Dono"
+    setCount(count + 1);
+    const response = await api.post('repositories', {
+      title: `Projeto: ${count}`,
+      url: `http://minhaapi.com/${count}`,
+      techs: `Tech: ${count}`
     });
-    const project = response.title;
-    setProjects([...projects,project]);
+    const project = response.data;
+    setRepositories([...repositories,project]);
   }
 
-  async function handleRemoveRepository(id) {
-    // TODO
+  async function handleRemoveRepository(id) { 
+    setRepositories(repositories.filter(project => project.id !== id));
+    api.delete(`repositories/${id}`);
+    
   }
 
   return (
     <div>
-      <ul data-testid="repository-list">
-          {projects.map(project => <li key={project.id}>
-            {project.title}
-            <button onClick={() => handleRemoveRepository(1)}>
-              Remover
-              </button>
-            </li>
-            )}     
-      </ul>
-      <button onClick={handleAddRepository}>Adicionar</button>
-    </div>
+      <ul data-testid="repository-list" >
+      {repositories.map(project => 
+      <li key={project.id}>
+      {project.title} 
+      <button onClick={() => handleRemoveRepository(project.id)}>
+        Remover
+      </button>
+      </li>
+      )}   
+    </ul>
+
+    <button onClick={handleAddRepository}>Adicionar</button>
+  </div>
   );
 }
 
